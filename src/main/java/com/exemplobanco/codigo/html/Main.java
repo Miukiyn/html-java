@@ -1,12 +1,21 @@
 package com.exemplobanco.codigo.html;
 
 import static spark.Spark.*;
+import java.sql.ResultSet;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.Statement;
+import spark.ModelAndView;
+import spark.template.velocity.VelocityTemplateEngine;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import static spark.Spark.*;
+
+
 
 public class Main {
     public static void main(String[] args) {
@@ -14,77 +23,101 @@ public class Main {
         String jdbcUrl = "jdbc:postgresql://localhost:5432/pessoas";
         String username = "postgres";
         String password = "";
+        Pessoa dh = new Pessoa();
+    
+        
 
-        // Configuração para servir arquivos estáticos (HTML, CSS, JavaScript, etc.)
+        // Configuração para servir arquivos estáticos (HTML)
         staticFiles.location("/public");
         
-        // Define a porta desejada, por exemplo, 8080
-        port(8080);
+       //port(8080); //Porta teste a porta que esta sendo usada no programa eh 4567 (padrao)
+        
+        
+        
 
-        // Rota para inserção de dados
+        // Configuração da rota para inserção de dados
         post("/processar", (req, res) -> {
             Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
             
-            // Recupere os dados do formulário
+            // Recupere os dados do formulário HTML
             String nome = req.queryParams("nome");
-            int idade = Integer.parseInt(req.queryParams("idade"));
+            String idadeStr = req.queryParams("idade");
+            int idade = Integer.parseInt(idadeStr); // Converte a idade para int
             String cidade = req.queryParams("cidade");
             
-            // Resto do código de inserção de dados aqui...
             
-            // Após a inserção dos dados, você pode redirecionar para a página de listagem de pessoas
-            res.redirect("/sucesso.html");
-            return "Inserção bem-sucedida";
-        });
-
-        // Rota para listar as pessoas (novo endpoint)
-        get("/listar", (req, res) -> {
-            Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
-            
-            // Consulta SQL para recuperar os dados das pessoas
-            String sql = "SELECT Nome, Idade, Cidade FROM Pessoas";
+            // Insira os dados no banco de dados
+            String sql = "INSERT INTO Pessoas (Nome, Idade, Cidade) VALUES (?, ?, ?)";
             PreparedStatement stmt = connection.prepareStatement(sql);
-            ResultSet resultSet = stmt.executeQuery();
-            
-            // Lista para armazenar os dados das pessoas
-            List<String> pessoas = new ArrayList<>();
-            
-            // Loop para recuperar os dados e adicioná-los à lista
-            while (resultSet.next()) {
-                String nome = resultSet.getString("Nome");
-                int idade = resultSet.getInt("Idade");
-                String cidade = resultSet.getString("Cidade");
-                pessoas.add(nome + " | " + idade + " anos | " + cidade);
-            }
+            stmt.setString(1, nome);
+            stmt.setInt(2, idade);
+            stmt.setString(3, cidade);
+            stmt.executeUpdate();
             
             // Feche a conexão com o banco de dados
-            resultSet.close();
             stmt.close();
             connection.close();
             
-            // Renderize a página HTML com os dados das pessoas
-            return renderListaDePessoas(pessoas);
+            // Redirecione para uma página de listagem
+            res.redirect("/listagem.html");
+            return null;
         });
-    }
+        
+     // Rota para exibir o HTML com os dados do banco de dados
+        get("/listagem.html", (req, res) -> {
+            try {
+                ResultSet resultSet = dh.getDadosDoBanco();
 
-    // Método para renderizar a lista de pessoas no formato HTML
-    private static String renderListaDePessoas(List<String> pessoas) {
-        StringBuilder html = new StringBuilder();
-        html.append("<html><body>");
-        html.append("<h2>Listagem de Pessoas</h2>");
-        html.append("<table>");
-        html.append("<tr><th>Nome</th><th>Idade</th><th>Cidade</th></tr>");
-        
-        for (String pessoa : pessoas) {
-            String[] dados = pessoa.split("\\|");
-            String nome = dados[0].trim();
-            String idade = dados[1].trim();
-            String cidade = dados[2].trim();
-            
-            html.append("<tr><td>").append(nome).append("</td><td>").append(idade).append("</td><td>").append(cidade).append("</td></tr>");
-        }
-        
-        html.append("</table></body></html>");
-        return html.toString();
+                // Criar um objeto Map para armazenar os dados que serão exibidos no HTML
+                Map<String, Object> model = new HashMap<>();
+                model.put("dados", resultSet);
+
+                // Renderizar o HTML com os dados
+                return new ModelAndView(model, "public/listagem.html");
+            } catch (Exception e) {
+                e.printStackTrace();
+                
+                // Se ocorrer um erro, renderize uma página de erro ou uma mensagem de erro
+                Map<String, Object> errorModel = new HashMap<>();
+                errorModel.put("mensagem", "Erro ao recuperar dados do banco de dados.");
+
+                return new ModelAndView(errorModel, "public/404.html");
+            }
+        }, new VelocityTemplateEngine());
     }
+    
+    
+    public static List<Map<String, String>> obterDadosDoBanco() {
+        List<Map<String, String>> dados = new ArrayList<>();
+
+        String jdbcUrl = "jdbc:postgresql://localhost:5432/pessoas";
+        String username = "postgres";
+        String password = "";
+
+        try {
+            Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
+            String sql = "SELECT Nome, Idade, Cidade FROM Pessoas"; 
+
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            ResultSet resultSet = stmt.executeQuery();
+
+            while (resultSet.next()) {
+                Map<String, String> registro = new HashMap<>();
+                registro.put("nome", resultSet.getString("Nome"));
+                registro.put("idade", resultSet.getString("Idade"));
+                registro.put("cidade", resultSet.getString("Cidade"));
+                dados.add(registro);
+            }
+
+            resultSet.close();
+            stmt.close();
+            connection.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            // erro
+        }
+
+        return dados;
+    }
+    
 }

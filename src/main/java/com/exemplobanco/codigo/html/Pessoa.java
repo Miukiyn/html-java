@@ -1,40 +1,29 @@
 package com.exemplobanco.codigo.html;
 
-public class Pessoa {
-    private String nome;
-    private int idade;
-    private String cidade;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import spark.ModelAndView;
+import spark.template.velocity.VelocityTemplateEngine;
+import java.util.HashMap;
+import java.util.Map;
+import static spark.Spark.*;
 
-    public Pessoa(String nome, int idade, String cidade) {
-        this.nome = nome;
-        this.idade = idade;
-        this.cidade = cidade;
+class Pessoa{
+	public static Connection connect() throws Exception {
+        String jdbcUrl = "jdbc:postgresql://localhost:5432/pessoas";
+        String username = "postgres";
+        String password = "";
+        Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
+        return connection;
     }
-
-    // Getters e setters (ou métodos para acessar os campos)
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public int getIdade() {
-        return idade;
-    }
-
-    public void setIdade(int idade) {
-        this.idade = idade;
-    }
-
-    public String getCidade() {
-        return cidade;
-    }
-
-    public void setCidade(String cidade) {
-        this.cidade = cidade;
+	
+	public static ResultSet getDadosDoBanco() throws Exception {
+        Connection connection = connect();
+        Statement statement = connection.createStatement();
+        String query = "SELECT * FROM pessoas";
+        ResultSet resultSet = statement.executeQuery(query);
+        return resultSet;
     }
 }
-

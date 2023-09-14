@@ -12,7 +12,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
    <dependencies>
     <dependency>
         <groupId>com.sparkjava</groupId>
@@ -30,19 +29,15 @@
         <version>42.6.0</version>
     </dependency>
     <dependency>
-        <groupId>org.thymeleaf</groupId>
-        <artifactId>thymeleaf</artifactId>
-        <version>3.1.2.RELEASE</version>
-    </dependency>
+    <groupId>org.apache.velocity.tools</groupId>
+    <artifactId>velocity-tools-generic</artifactId>
+    <version>3.1</version> <!-- Use a versão correta -->
+</dependency>
+
     <dependency>
-        <groupId>org.thymeleaf</groupId>
-        <artifactId>thymeleaf-spring5</artifactId>
-        <version>3.1.2.RELEASE</version>
-    </dependency>
-    <dependency>
-    <groupId>com.google.code.gson</groupId>
-    <artifactId>gson</artifactId>
-    <version>2.10.1</version>
+    <groupId>com.sparkjava</groupId>
+    <artifactId>spark-template-velocity</artifactId>
+    <version>2.7.1</version>
 </dependency>
 </dependencies>
 
