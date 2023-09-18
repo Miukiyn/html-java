@@ -7,3 +7,7 @@ Este projeto demonstra a implementação de páginas HTML que interagem com um b
 - Integração entre Java e Banco de Dados
 - Utilização de INSECT e SELECT com SQL
 - Exibição dinâmica de dados em páginas HTML
+
+## Novo projeto
+
+- [Banco de Dados com SQL e Java - desenvolvimento mais pratico](https://github.com/Miukiyn/sql-java)
